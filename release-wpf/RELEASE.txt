@@ -1,0 +1,11 @@
+﻿Media Download Manager WPF (.NET 8, win-x64)
+===========================================
+Run: MediaDownloadManager.exe
+
+Needs:
+- .NET 8 Desktop Runtime
+- yt-dlp.exe on PATH or next to this exe
+- ffmpeg on PATH (HLS merge, mp3, HEVC to H.264)
+
+Parallel: toolbar combo 1 = one video, 2-8 = several at once.
+HLS .vl / PNG-wrapped segments are merged automatically.

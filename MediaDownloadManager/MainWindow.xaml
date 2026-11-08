@@ -1,0 +1,313 @@
+﻿<Window x:Class="MediaDownloadManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:MediaDownloadManager"
+        Title="Media Download Manager"
+        Height="720" Width="1100"
+        MinHeight="560" MinWidth="900"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource WindowBgBrush}"
+        FontFamily="Segoe UI" FontSize="13"
+        TextOptions.TextFormattingMode="Display">
+
+  <Window.CommandBindings>
+    <CommandBinding Command="local:AppCommands.AddUrl" Executed="AddUrl_Click"/>
+    <CommandBinding Command="local:AppCommands.FromClipboard" Executed="Clipboard_Click"/>
+    <CommandBinding Command="local:AppCommands.ImportList" Executed="ListFile_Click"/>
+    <CommandBinding Command="local:AppCommands.OpenOutputFolder" Executed="Folder_Click"/>
+    <CommandBinding Command="local:AppCommands.StartAll" Executed="Start_Click"/>
+    <CommandBinding Command="local:AppCommands.PauseAll" Executed="Pause_Click"/>
+    <CommandBinding Command="local:AppCommands.StartSelected" Executed="StartSelected_Executed" CanExecute="HasSelection_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.OpenFile" Executed="OpenFile_Executed" CanExecute="HasFile_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.ShowInFolder" Executed="ShowInFolder_Executed" CanExecute="HasSelection_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.CopyUrl" Executed="CopyUrl_Executed" CanExecute="HasSelection_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.ConvertHevc" Executed="ConvertHevc_Executed" CanExecute="HasFile_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.ConvertFile" Executed="ConvertFile_Executed"/>
+    <CommandBinding Command="local:AppCommands.PriorityHigh" Executed="PriorityHigh_Executed" CanExecute="HasSelection_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.PriorityNormal" Executed="PriorityNormal_Executed" CanExecute="HasSelection_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.PriorityLow" Executed="PriorityLow_Executed" CanExecute="HasSelection_CanExecute"/>
+    <CommandBinding Command="local:AppCommands.ClearCompleted" Executed="ClearDone_Click"/>
+    <CommandBinding Command="local:AppCommands.Exit" Executed="Exit_Executed"/>
+    <CommandBinding Command="ApplicationCommands.Delete" Executed="Delete_Click" CanExecute="HasSelection_CanExecute"/>
+  </Window.CommandBindings>
+
+  <DockPanel>
+
+    <!-- Top bar: menu + toolbar as one soft block -->
+    <Border DockPanel.Dock="Top" Background="{StaticResource BarBgBrush}"
+            BorderBrush="{StaticResource LineSoft}" BorderThickness="0,0,0,1">
+      <StackPanel>
+
+    <!-- Menu -->
+    <Menu FocusManager.IsFocusScope="False" Background="Transparent">
+      <MenuItem Header="_File">
+        <MenuItem Command="local:AppCommands.AddUrl"/>
+        <MenuItem Command="local:AppCommands.FromClipboard"/>
+        <MenuItem Command="local:AppCommands.ImportList"/>
+        <Separator/>
+        <MenuItem Command="local:AppCommands.OpenOutputFolder"/>
+        <Separator/>
+        <MenuItem Command="local:AppCommands.Exit" InputGestureText="Alt+F4"/>
+      </MenuItem>
+      <MenuItem Header="_Download">
+        <MenuItem Command="local:AppCommands.StartAll"/>
+        <MenuItem Command="local:AppCommands.PauseAll"/>
+        <MenuItem Command="local:AppCommands.StartSelected"/>
+        <Separator/>
+        <MenuItem Header="_Priority">
+          <MenuItem Command="local:AppCommands.PriorityHigh"/>
+          <MenuItem Command="local:AppCommands.PriorityNormal"/>
+          <MenuItem Command="local:AppCommands.PriorityLow"/>
+        </MenuItem>
+        <Separator/>
+        <MenuItem Command="ApplicationCommands.Delete" Header="Delete selected"/>
+        <MenuItem Command="local:AppCommands.ClearCompleted"/>
+      </MenuItem>
+      <MenuItem Header="_Item">
+        <MenuItem Command="local:AppCommands.OpenFile"/>
+        <MenuItem Command="local:AppCommands.ShowInFolder"/>
+        <MenuItem Command="local:AppCommands.CopyUrl"/>
+        <Separator/>
+        <MenuItem Command="local:AppCommands.ConvertHevc"/>
+      </MenuItem>
+      <MenuItem Header="_Tools">
+        <MenuItem Command="local:AppCommands.ConvertFile"/>
+        <MenuItem Command="local:AppCommands.ConvertHevc"/>
+        <Separator/>
+        <MenuItem Header="_Sign in to YouTube..." Click="Login_Click"/>
+        <MenuItem Header="Forget saved _login" Click="ForgetLogin_Click"/>
+        <MenuItem Header="Error _log" Click="ShowLog_Click"/>
+      </MenuItem>
+    </Menu>
+
+    <!-- Toolbar -->
+    <ToolBarTray Background="Transparent" Margin="4,0,4,4">
+      <ToolBar>
+        <Button Command="local:AppCommands.AddUrl" Content="+ Add URL..." FontWeight="SemiBold"
+                Foreground="{StaticResource Accent}"/>
+        <Button Command="local:AppCommands.FromClipboard" Content="From clipboard"/>
+        <Button Command="local:AppCommands.ImportList" Content="Import list..."/>
+      </ToolBar>
+      <ToolBar>
+        <Button Command="local:AppCommands.StartAll" Content="Start all"/>
+        <Button Command="local:AppCommands.PauseAll" Content="Pause all"/>
+        <Button Command="local:AppCommands.StartSelected" Content="Start selected"/>
+        <Separator/>
+        <TextBlock Text="Parallel" VerticalAlignment="Center" Margin="6,0,4,0"/>
+        <ComboBox x:Name="ParallelBox" Width="52" SelectedIndex="0"
+                  SelectionChanged="Parallel_Changed" ToolTip="Videos downloading at once">
+          <ComboBoxItem Content="1"/>
+          <ComboBoxItem Content="2"/>
+          <ComboBoxItem Content="3"/>
+          <ComboBoxItem Content="4"/>
+          <ComboBoxItem Content="6"/>
+          <ComboBoxItem Content="8"/>
+        </ComboBox>
+      </ToolBar>
+      <ToolBar>
+        <Button Command="local:AppCommands.PriorityHigh" ToolTip="Priority: High (Ctrl+1)" Padding="8,2">
+          <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74A;" FontSize="14"/>
+        </Button>
+        <Button Command="local:AppCommands.PriorityNormal" ToolTip="Priority: Normal (Ctrl+2)" Padding="8,2">
+          <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE73E;" FontSize="14"/>
+        </Button>
+        <Button Command="local:AppCommands.PriorityLow" ToolTip="Priority: Low (Ctrl+3)" Padding="8,2">
+          <TextBlock FontFamily="Segoe MDL2 Assets" Text="&#xE74B;" FontSize="14"/>
+        </Button>
+      </ToolBar>
+      <ToolBar>
+        <Button Command="ApplicationCommands.Delete" Content="Delete"/>
+        <Button Command="local:AppCommands.ClearCompleted" Content="Clear completed"/>
+      </ToolBar>
+      <ToolBar>
+        <Button Command="local:AppCommands.OpenOutputFolder" Content="Open folder"/>
+      </ToolBar>
+    </ToolBarTray>
+
+      </StackPanel>
+    </Border>
+
+    <!-- Status bar -->
+    <StatusBar DockPanel.Dock="Bottom">
+      <StatusBar.ItemsPanel>
+        <ItemsPanelTemplate>
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+          </Grid>
+        </ItemsPanelTemplate>
+      </StatusBar.ItemsPanel>
+      <StatusBarItem Grid.Column="0">
+        <TextBlock x:Name="StatusText" Text="Ready" TextTrimming="CharacterEllipsis"/>
+      </StatusBarItem>
+      <StatusBarItem Grid.Column="1">
+        <TextBlock x:Name="DepsText" Text=""/>
+      </StatusBarItem>
+      <StatusBarItem Grid.Column="2">
+        <TextBlock x:Name="SummaryText" Text="0 items"/>
+      </StatusBarItem>
+    </StatusBar>
+
+    <!-- Left pane -->
+    <ScrollViewer DockPanel.Dock="Left" Width="188" VerticalScrollBarVisibility="Auto" Margin="8,8,0,8">
+      <StackPanel>
+        <GroupBox Header="Search">
+          <TextBox x:Name="SearchBox" Margin="4" TextChanged="SearchBox_TextChanged"
+                   ToolTip="Filter by name or URL"/>
+        </GroupBox>
+
+        <GroupBox Header="View" Margin="0,8,0,0">
+          <ListBox x:Name="FilterList" BorderThickness="0" Margin="0" FontSize="12"
+                   SelectionChanged="Filter_Changed">
+            <ListBox.ItemContainerStyle>
+              <Style TargetType="ListBoxItem">
+                <Setter Property="Padding" Value="6,1"/>
+                <Setter Property="MinHeight" Value="20"/>
+              </Style>
+            </ListBox.ItemContainerStyle>
+          </ListBox>
+        </GroupBox>
+
+        <GroupBox Header="Download settings" Margin="0,8,0,0">
+          <StackPanel Margin="4">
+            <Label Content="_Output folder:" Target="{Binding ElementName=OutputBox}" Padding="0,0,0,2"/>
+            <DockPanel>
+              <Button DockPanel.Dock="Right" Content="..." Width="28" Margin="4,0,0,0"
+                      Click="BrowseOut_Click" ToolTip="Browse for folder"/>
+              <TextBox x:Name="OutputBox" LostFocus="SettingsChanged"/>
+            </DockPanel>
+
+            <Label Content="Browser _cookies:" Target="{Binding ElementName=CookiesBox}" Padding="0,10,0,2"/>
+            <ComboBox x:Name="CookiesBox" SelectionChanged="SettingsChanged"
+                      ToolTip="Use cookies from a browser for age/login-restricted media">
+              <ComboBoxItem Content="auto" IsSelected="True"/>
+              <ComboBoxItem Content="(none)"/>
+              <ComboBoxItem Content="chrome"/>
+              <ComboBoxItem Content="edge"/>
+              <ComboBoxItem Content="firefox"/>
+              <ComboBoxItem Content="brave"/>
+            </ComboBox>
+            <Button Content="Sign in to YouTube..." Margin="0,6,0,0" Padding="6,2"
+                    Click="Login_Click"
+                    ToolTip="Opens an in-app browser. Sign in once; cookies are reused by yt-dlp"/>
+
+            <CheckBox x:Name="AudioOnlyCheck" Content="_Audio only" Margin="0,10,0,0"
+                      Checked="SettingsChanged" Unchecked="SettingsChanged"
+                      ToolTip="Applies to items added from now on"/>
+            <CheckBox x:Name="AutoConvertHevcCheck" Content="Auto convert _HEVC→H.264"
+                      Margin="0,8,0,0"
+                      Checked="SettingsChanged" Unchecked="SettingsChanged"
+                      ToolTip="After download, convert HEVC/H.265 to H.264 MP4 for normal playback"/>
+          </StackPanel>
+        </GroupBox>
+
+        <GroupBox Header="Clipboard monitor" Margin="0,8,0,0">
+          <StackPanel Margin="4">
+            <CheckBox x:Name="AutoClipCheck" Content="Auto-add _links" IsChecked="False"
+                      Checked="AutoClip_Changed" Unchecked="AutoClip_Changed"
+                      ToolTip="Off by default. When on, links you copy from now on are added automatically (links already in the clipboard are ignored)"/>
+            <Label Content="_Platform:" Target="{Binding ElementName=AutoModeBox}" Padding="0,8,0,2"/>
+            <ComboBox x:Name="AutoModeBox" SelectionChanged="AutoMode_Changed">
+              <ComboBoxItem Content="All platforms" Tag="All" IsSelected="True"/>
+              <ComboBoxItem Content="YouTube" Tag="Youtube"/>
+              <ComboBoxItem Content="TikTok" Tag="Tiktok"/>
+              <ComboBoxItem Content="Instagram" Tag="Instagram"/>
+              <ComboBoxItem Content="Facebook" Tag="Facebook"/>
+              <ComboBoxItem Content="HLS / m3u8" Tag="Hls"/>
+              <ComboBoxItem Content="Torrent" Tag="Torrent"/>
+            </ComboBox>
+          </StackPanel>
+        </GroupBox>
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- Right: grid + details -->
+    <Grid Margin="12">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="2*"/>
+        <RowDefinition Height="Auto"/>
+        <RowDefinition Height="*" MinHeight="100"/>
+      </Grid.RowDefinitions>
+
+      <DataGrid x:Name="QueueList" Grid.Row="0"
+                AutoGenerateColumns="False" IsReadOnly="True"
+                CanUserAddRows="False" CanUserDeleteRows="False" CanUserResizeRows="False"
+                SelectionMode="Extended" SelectionUnit="FullRow"
+                HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                RowHeaderWidth="0" EnableRowVirtualization="True"
+                SelectionChanged="QueueList_SelectionChanged"
+                PreviewKeyDown="QueueList_PreviewKeyDown"
+                MouseDoubleClick="QueueList_DoubleClick">
+        <DataGrid.ContextMenu>
+          <ContextMenu>
+            <MenuItem Command="local:AppCommands.OpenFile"/>
+            <MenuItem Command="local:AppCommands.ShowInFolder"/>
+            <MenuItem Command="local:AppCommands.CopyUrl"/>
+            <Separator/>
+            <MenuItem Command="local:AppCommands.ConvertHevc"/>
+            <MenuItem Command="local:AppCommands.StartSelected"/>
+            <Separator/>
+            <MenuItem Command="local:AppCommands.PriorityHigh"/>
+            <MenuItem Command="local:AppCommands.PriorityNormal"/>
+            <MenuItem Command="local:AppCommands.PriorityLow"/>
+            <Separator/>
+            <MenuItem Command="ApplicationCommands.Delete" Header="Delete"/>
+          </ContextMenu>
+        </DataGrid.ContextMenu>
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="Pri" Binding="{Binding PriorityText, Mode=OneWay}" SortMemberPath="Priority" Width="60"/>
+          <DataGridTextColumn Header="Name / URL" Binding="{Binding DisplayName, Mode=OneWay}" Width="*" MinWidth="200"/>
+          <DataGridTextColumn Header="Source" Binding="{Binding SourceText, Mode=OneWay}" Width="80"/>
+          <DataGridTemplateColumn Header="Progress" Width="160" SortMemberPath="Progress">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Grid Margin="0,2">
+                  <ProgressBar Height="16" Minimum="0" Maximum="100" Value="{Binding Progress, Mode=OneWay}"/>
+                  <TextBlock Text="{Binding ProgressText}" FontSize="11" Foreground="#3B4659"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Grid>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="Speed" Binding="{Binding SpeedText, Mode=OneWay}" SortMemberPath="Speed" Width="90"/>
+          <DataGridTextColumn Header="ETA" Binding="{Binding Eta, Mode=OneWay}" Width="70"/>
+          <DataGridTemplateColumn Header="Status" Width="105" SortMemberPath="StateText">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate>
+                <Border Style="{StaticResource BadgeBorder}">
+                  <TextBlock Text="{Binding StateText}" Style="{StaticResource BadgeText}"/>
+                </Border>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+        </DataGrid.Columns>
+      </DataGrid>
+
+      <GridSplitter Grid.Row="1" Height="10" HorizontalAlignment="Stretch" ResizeDirection="Rows"
+                    Background="Transparent"/>
+
+      <TabControl x:Name="BottomTabs" Grid.Row="2">
+        <TabItem Header="Details">
+          <TextBox x:Name="DetailBox" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                   BorderThickness="0" VerticalScrollBarVisibility="Auto"
+                   Text="Select a download to view details."/>
+        </TabItem>
+        <TabItem x:Name="LogTab" Header="Error log">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,4">
+              <Button Content="Copy" Padding="10,2" Click="CopyLog_Click"/>
+              <Button Content="Clear" Padding="10,2" Margin="6,0,0,0" Click="ClearLog_Click"/>
+            </StackPanel>
+            <TextBox x:Name="LogBox" IsReadOnly="True" TextWrapping="Wrap" AcceptsReturn="True"
+                     FontFamily="Consolas" FontSize="12"
+                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
+          </DockPanel>
+        </TabItem>
+      </TabControl>
+    </Grid>
+
+  </DockPanel>
+</Window>
